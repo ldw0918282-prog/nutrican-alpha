@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>영양제 비교</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  background:#e9ecf1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  font-family:-apple-system;
+}
+
+.phone{
+  width:360px;
+  height:640px;
+  background:#f2f3f5;
+  border-radius:30px;
+  position:relative;
+
+  display:flex;              
+  flex-direction:column;     
+}
+
+.container{
+  padding:20px 15px 80px;
+}
+
+/* AI 카드 */
+.ai{
+  background:#1faa59;
+  color:#fff;
+  border-radius:20px;
+  padding:15px;
+  font-size:14px;
+  line-height:1.5;
+}
+
+/* 제품 카드 */
+.card{
+  background:#fff;
+  border-radius:20px;
+  padding:15px;
+  margin-top:15px;
+}
+
+/* 제품 영역 */
+.product-row{
+  display:flex;
+  justify-content:space-between;
+  margin-top:10px;
+}
+
+.product{
+  width:48%;
+  text-align:center;
+}
+
+.product-img{
+  width:50px;
+  height:50px;
+  background:#eee;
+  border-radius:10px;
+  margin:auto;
+}
+
+/* 경고 */
+.warning{
+  background:#fdecea;
+  color:#d93025;
+  padding:10px;
+  border-radius:15px;
+  margin-top:10px;
+  font-size:12px;
+}
+
+/* 성분 비교 */
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:10px;
+  font-size:13px;
+}
+
+.bar{
+  height:6px;
+  border-radius:5px;
+  background:#eee;
+  margin-top:5px;
+}
+
+.fillA{
+  height:6px;
+  border-radius:5px;
+  background:#1faa59;
+}
+
+.fillB{
+  height:6px;
+  border-radius:5px;
+  background:#1a73e8;
+}
+
+/* 버튼 */
+.btn{
+  position:sticky;
+  bottom:10px;
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#1a73e8;
+  color:#fff;
+  margin-top:15px;
+}
+
+.container{
+  flex:1;
+  overflow-y:auto;
+}
+</style>
+</head>
+
+<body>
+
+<div class="phone">
+<div class="container">
+
+<!-- AI 결과 -->
+<div class="ai" id="aiBox"></div>
+
+<!-- 제품 -->
+<div class="card">
+<div class="product-row">
+  <div class="product">
+    <div class="product-img"></div>
+    <div id="productA"></div>
+  </div>
+  <div class="product">
+    <div class="product-img"></div>
+    <div id="productB"></div>
+  </div>
+</div>
+</div>
+
+<!-- 경고 -->
+<div class="warning" id="warningBox">
+⚠️ 중복 성분 주의 (AI 분석 예정)
+</div>
+
+<!-- 성분 비교 -->
+<div class="card">
+<h4>핵심 성분 비교 (권장량 기준)</h4>
+<div id="nutrientBox"></div>
+</div>
+
+<button class="btn" onclick="goBack()">다른제품 비교하기</button>
+
+</div>
+</div>
+
+<script>
+
+/* 뒤로가기 */
+function goBack(){
+  location.href = "nutriscan-home.html#compare";
+}
+/* 데이터 로드 */
+function loadData(){
+  let data = JSON.parse(localStorage.getItem("selectedCompare")) || [];
+
+  // 1차 검증
+  if(data.length < 2){
+    alert("제품 2개 선택 필요");
+    location.href = "nutriscan-cabinit.html";
+    return;
+  }
+
+  let A = data[0];
+  let B = data[1];
+
+  // 2차 검증
+  if(!A || !B){
+    alert("데이터 오류");
+    return;
+  }
+
+  // 제품 정보 출력
+  document.getElementById("productA").innerHTML = `
+    <b>${A.name}</b><br>
+    ${A.brand || "-"}<br>
+    ${A.dose || "-"} / ${A.perDay || "-"}
+  `;
+
+  document.getElementById("productB").innerHTML = `
+    <b>${B.name}</b><br>
+    ${B.brand || "-"}<br>
+    ${B.dose || "-"} / ${B.perDay || "-"}
+  `;
+
+  // AI 결과 (임시)
+  document.getElementById("aiBox").innerHTML =
+    `AI 분석 결과<br><b>${A.name}</b>이 더 적합합니다`;
+
+  // 성분 비교
+  let box = document.getElementById("nutrientBox");
+  box.innerHTML = "";
+
+  let map = {};
+
+  // A 성분
+  (A.nutrients || []).forEach(n=>{
+    map[n.name] = {a:n, b:null};
+  });
+
+  // B 성분
+  (B.nutrients || []).forEach(n=>{
+    if(!map[n.name]) map[n.name] = {a:null, b:null};
+    map[n.name].b = n;
+  });
+
+  // 렌더
+  Object.keys(map).forEach(name=>{
+    let a = map[name].a;
+    let b = map[name].b;
+
+    let div = document.createElement("div");
+
+    div.innerHTML = `
+      <div class="row">
+        <span>${name}</span>
+        <span>${a?.percent || 0}% vs ${b?.percent || 0}%</span>
+      </div>
+
+      <div class="bar">
+        <div class="fillA" style="width:${a?.percent || 0}%"></div>
+      </div>
+
+      <div class="bar">
+        <div class="fillB" style="width:${b?.percent || 0}%"></div>
+      </div>
+    `;
+
+    box.appendChild(div);
+  });
+
+  // 3차 검증 로그
+  console.log("비교 완료:", map);
+}
+
+window.onload = loadData;
+let data = JSON.parse(localStorage.getItem("selectedCompare")) || [];
+
+if(data.length < 2){
+  alert("데이터 없음");
+  location.href = "nutriscan-home.html#compare";
+}
+
+let A = data[0];
+let B = data[1];
+
+// 제품 정보
+document.getElementById("p1").innerHTML = `
+<b>${A.name}</b><br>
+${A.brand || "-"}<br>
+${A.dose || "-"} / ${A.perDay || "-"}
+`;
+
+document.getElementById("p2").innerHTML = `
+<b>${B.name}</b><br>
+${B.brand || "-"}<br>
+${B.dose || "-"} / ${B.perDay || "-"}
+`;
+
+// 성분 비교
+let box = document.getElementById("compareNutrients");
+box.innerHTML = "";
+
+let map = {};
+
+// A
+A.nutrients.forEach(n=>{
+  map[n.name] = {a:n, b:null};
+});
+
+// B
+B.nutrients.forEach(n=>{
+  if(!map[n.name]) map[n.name] = {a:null, b:null};
+  map[n.name].b = n;
+});
+
+// 렌더
+Object.keys(map).forEach(name=>{
+  let a = map[name].a;
+  let b = map[name].b;
+
+  let div = document.createElement("div");
+
+  div.innerHTML = `
+    <div style="margin-top:10px">
+
+      <b>${name}</b>
+
+      <div style="display:flex;gap:5px;margin-top:5px">
+        <div style="flex:1">
+          ${a?.val || "-"}
+          <div style="background:#eee;height:6px">
+            <div style="width:${a?.percent || 0}%;background:#1a73e8;height:100%"></div>
+          </div>
+        </div>
+
+        <div style="flex:1">
+          ${b?.val || "-"}
+          <div style="background:#eee;height:6px">
+            <div style="width:${b?.percent || 0}%;background:#ff7043;height:100%"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  `;
+
+  box.appendChild(div);
+});
+
+
+window.onload = loadData;
+document.addEventListener("DOMContentLoaded", loadData);
+
+
+</script>
+
+</body>
+</html>

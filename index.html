@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health App 통합 최종</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#e9ecf1;
+  margin:0;
+  font-family:-apple-system;
+  min-height:100dvh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+/* 실제 모바일 대응 */
+.phone{
+  width:100%;
+  max-width:430px;
+  height:100dvh;
+  max-height:100dvh;
+  background:#f2f3f5;
+  border-radius:0;
+  overflow:hidden;
+  position:relative;
+}
+
+/* PC 미리보기일 때만 둥근 프레임 유지 */
+@media (min-width: 768px){
+  .phone{
+    height:90vh;
+    max-height:850px;
+    border-radius:30px;
+  }
+}
+.screen{display:none;width:100%;height:100%;position:absolute}
+.screen.active{display:block}
+
+.header{background:#6aa36f;color:#fff;padding:20px;border-radius:0 0 25px 25px;position:relative}
+.profile-btn{position:absolute;right:20px;top:20px;cursor:pointer;color:white;font-size:24px;}
+.week{display:flex;justify-content:space-between;margin-top:10px}
+.week-day{flex:1;text-align:center;padding:8px;border-radius:10px;background:#ffffff22;font-size:12px}
+.today{background:#fff;color:#333;font-weight:bold}
+
+.home-content{
+  padding:15px;
+  padding-bottom:100px;
+  height:calc(100% - 120px);
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.card{background:#fff;padding:15px;border-radius:20px;margin-top:15px}
+.score{font-size:28px;color:#1a73e8}
+.alarm-item{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:10px;background:#f7f7f7;border-radius:15px}
+
+/* scan */
+.scroll-area{
+  height:100%;
+  overflow-y:auto;
+  padding-bottom:100px;
+  -webkit-overflow-scrolling:touch;
+}
+.search{width:100%;padding:12px;border-radius:25px;border:none;background:#fff}
+.main{display:flex;flex-direction:column;align-items:center;justify-content:center;height:500px;color:#aaa}
+.scan-btn{background:#1a73e8;color:#fff;padding:12px 24px;border:none;border-radius:25px;margin-top:15px}
+.camera{position:absolute;width:100%;height:100%;display:none;justify-content:center;align-items:center;background:#000;z-index:10}
+video{width:100%;height:100%;object-fit:cover}
+.capture-btn{position:absolute;bottom:90px;width:70px;height:70px;border-radius:50%;background:#fff}
+.result{position:absolute;bottom:-100%;width:100%;background:#fff;border-radius:20px 20px 0 0;padding:20px;transition:.3s;z-index:20}
+.result.show{bottom:0}
+
+/* chat */
+.chat-header{padding:15px;text-align:center;font-weight:bold;background:#fff}
+.chat-box{height:440px;overflow-y:auto;padding:15px;display:flex;flex-direction:column;gap:10px;background:#f7f7f7}
+.msg{max-width:70%;padding:10px 14px;border-radius:15px;font-size:14px}
+.user{align-self:flex-end;background:#1a73e8;color:#fff}
+.chat-input-area{
+  position:absolute;
+  bottom:60px;
+  width:100%;
+  display:flex;
+  padding:10px;
+  background:#fff;
+  z-index:5;
+}
+.chat-input-area input{flex:1;border:none;background:#f1f1f1;border-radius:20px;padding:10px}
+.chat-input-area button{width:40px;margin-left:10px;border-radius:50%;background:#00c853;color:#fff}
+
+.bottom-nav{position:absolute;bottom:0;width:100%;height:60px;background:#fff;display:flex;justify-content:space-around;align-items:center;border-top:1px solid #ddd}
+.nav-item{font-size:12px;color:#888;cursor:pointer}
+.nav-item.active{color:#1a73e8}
+
+.modal{position:absolute;width:100%;height:100%;background:rgba(0,0,0,.4);display:none;justify-content:center;align-items:center}
+.modal-content{background:#fff;padding:20px;border-radius:20px;width:85%}
+button{width:100%;padding:12px;border:none;border-radius:10px;background:#1a73e8;color:#fff;margin-top:10px}
+input{width:100%;padding:10px;margin-top:10px;border-radius:10px;border:1px solid #ddd}
+.days{display:flex;justify-content:space-between;margin-top:10px}
+.day-chip{padding:6px 8px;border-radius:10px;background:#eee;font-size:12px;cursor:pointer}
+.day-chip.active{background:#1a73e8;color:#fff}
+
+/* compare */
+.compare-wrap{padding:20px}
+.compare-title{text-align:center;margin-bottom:20px;font-weight:bold}
+.compare-cards{display:flex;gap:10px}
+.compare-card{flex:1;background:#fff;border-radius:15px;padding:15px;text-align:center}
+.compare-img{width:50px;height:50px;background:#eee;border-radius:10px;margin:auto}
+.compare-text{margin-top:8px;font-size:11px;color:#888}
+
+.compare-modal{position:absolute;left:0;right:0;bottom:-100%;width:100%;height:auto !important;max-height:45% !important;background:#fff;border-radius:16px 16px 0 0;padding:10px 10px 15px 10px;transition:0.3s;z-index:30;overflow-y:auto}
+.compare-modal.show{bottom:0}
+
+.compare-option{padding:8px;border:1px solid #1a73e8;border-radius:8px;text-align:center;margin-top:6px;color:#1a73e8;cursor:pointer;font-size:12px}
+.compare-option.primary{background:#1a73e8;color:#fff}
+
+.section-title{
+  margin-top:20px;
+  font-size:14px;
+  color:#666;
+}
+
+.chip-group{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+
+.chip{
+  padding:8px 12px;
+  border-radius:20px;
+  background:#eee;
+  font-size:12px;
+  cursor:pointer;
+}
+
+.chip.active{
+  background:#1a73e8;
+  color:#fff;
+}
+
+.gender-group{
+  display:flex;
+  gap:10px;
+  margin:10px 0;
+}
+
+.gender-btn{
+  flex:1;
+  padding:10px;
+  border-radius:10px;
+  background:#eee;
+  text-align:center;
+  cursor:pointer;
+}
+
+.gender-btn.active{
+  background:#1a73e8;
+  color:#fff;
+}
+
+.alarm-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:10px;
+  padding:12px;
+  background:#fff;
+  border-radius:15px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* 복용 체크 버튼 */
+.check-btn{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:2px solid #1a73e8;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:14px;
+  color:#1a73e8;
+  cursor:pointer;
+}
+
+.check-btn.done{
+  background:#1a73e8;
+  color:#fff;
+}
+
+/* 토글 스위치 */
+.toggle{
+  width:40px;
+  height:22px;
+  border-radius:20px;
+  background:#ccc;
+  position:relative;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.toggle .circle{
+  width:18px;
+  height:18px;
+  background:#fff;
+  border-radius:50%;
+  position:absolute;
+  top:2px;
+  left:2px;
+  transition:0.2s;
+}
+
+.toggle.on{
+  background:#1a73e8;
+}
+
+.toggle.on .circle{
+  left:20px;
+}
+
+.delete-btn{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  background:#ff5252;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:14px;
+  cursor:pointer;
+  margin-left:8px;
+}
+</style>
+</head>
+<body>
+<div class="phone">
+
+<div id="start" class="screen active">
+<h1 style="text-align:center;margin-top:200px;">Health App</h1>
+<button onclick="go('login')">시작하기</button>
+</div>
+
+<div id="login" class="screen">
+<div style="padding:20px">
+<h2>로그인</h2>
+<input id="email" placeholder="이메일">
+<input id="pw" type="password" placeholder="비밀번호">
+<button onclick="location.href='nutriscan-personal-information.html'">
+  회원가입
+</button>
+<button id="loginBtn" onclick="login()">로그인</button>
+</div>
+
+</div>
+
+<div id="input0" class="screen">
+  <div style="padding:20px">
+    <h3>회원가입</h3>
+
+    <div class="section-title">이메일</div>
+    <input id="signupEmail" placeholder="이메일 입력">
+
+    <div class="section-title">비밀번호</div>
+    <input id="signupPw" type="password" placeholder="비밀번호 입력">
+
+    <div class="section-title">비밀번호 확인</div>
+    <input id="signupPw2" type="password" placeholder="비밀번호 확인">
+
+    <button onclick="signUpAndNext()">회원가입</button>
+  </div>
+</div>
+
+<div id="input1" class="screen">
+  <div style="padding:20px">
+    <h3>기본 정보를 알려주세요</h3>
+
+    <div class="section-title">닉네임</div>
+<input id="nicknameInput" placeholder="닉네임 입력">
+
+    <div class="section-title">성별</div>
+    <div class="gender-group">
+      <div class="gender-btn" onclick="selectGender(this)">남성</div>
+      <div class="gender-btn" onclick="selectGender(this)">여성</div>
+    </div>
+
+    <div class="section-title">나이</div>
+    <input id="age" placeholder="예: 28">
+
+    <div class="section-title">키</div>
+    <input id="height" placeholder="예: 170">
+
+    <div class="section-title">몸무게</div>
+    <input id="weight" placeholder="예: 70">
+
+    <button onclick="go('input2')">Next</button>
+  </div>
+</div>
+
+<div id="input2" class="screen">
+  <div style="padding:20px">
+    <h3>라이프스타일</h3>
+
+    <div class="section-title">식습관</div>
+    <div class="chip-group">
+      <div class="chip" onclick="toggleChip(this)">균형식</div>
+      <div class="chip" onclick="toggleChip(this)">불규칙</div>
+      <div class="chip" onclick="toggleChip(this)">채식 위주</div>
+      <div class="chip" onclick="toggleChip(this)">육식 위주</div>
+    </div>
+
+    <div class="section-title">운동량</div>
+    <div class="chip-group">
+      <div class="chip" onclick="toggleChip(this)">거의 안함</div>
+      <div class="chip" onclick="toggleChip(this)">주 1~2회</div>
+      <div class="chip" onclick="toggleChip(this)">주 3~4회</div>
+      <div class="chip" onclick="toggleChip(this)">주 5회 이상</div>
+    </div>
+
+    <div class="section-title">흡연</div>
+    <div class="chip-group">
+      <div class="chip" onclick="toggleChip(this)">비흡연</div>
+      <div class="chip" onclick="toggleChip(this)">흡연</div>
+      <div class="chip" onclick="toggleChip(this)">과거 흡연</div>
+    </div>
+
+    <div class="section-title">음주</div>
+    <div class="chip-group">
+      <div class="chip" onclick="toggleChip(this)">안함</div>
+      <div class="chip" onclick="toggleChip(this)">주 1~2회</div>
+      <div class="chip" onclick="toggleChip(this)">주 3회 이상</div>
+    </div>
+
+    <button onclick="go('input3')">Next</button>
+  </div>
+</div>
+
+<div id="input3" class="screen">
+  <div style="padding:20px">
+    <h3>건강 목표</h3>
+
+    <div class="chip-group">
+      <div class="chip" onclick="toggleChip(this)">피로 개선</div>
+      <div class="chip" onclick="toggleChip(this)">면역력</div>
+      <div class="chip" onclick="toggleChip(this)">눈 건강</div>
+      <div class="chip" onclick="toggleChip(this)">장 건강</div>
+      <div class="chip" onclick="toggleChip(this)">다이어트</div>
+      <div class="chip" onclick="toggleChip(this)">피부 건강</div>
+      <div class="chip" onclick="toggleChip(this)">관절 건강</div>
+      <div class="chip" onclick="toggleChip(this)">수면 개선</div>
+      <div class="chip" onclick="toggleChip(this)">근육 증가</div>
+    </div>
+
+    <button onclick="finishInput()">완료</button>
+  </div>
+</div>
+<div id="home" class="screen">
+<div class="header" onclick="goCalendar()">
+<div id="date"></div>
+<div id="welcomeName" style="margin-top:8px;font-size:18px;font-weight:bold;color:white;"></div>
+<div class="profile-btn" onclick="event.stopPropagation(); openProfile();">👤</div>
+<div id="week" class="week"></div>
+</div>
+<div class="home-content">
+<div class="card"><div>오늘 점수</div><div id="score" class="score">없음</div></div>
+<div class="card"><div>복용 알림</div><div id="alarmList"></div></div>
+</div>
+<div class="fab" onclick="openAddModal()" style="position:absolute;bottom:80px;right:20px;width:60px;height:60px;border-radius:50%;background:#1a73e8;color:#fff;font-size:30px;display:flex;align-items:center;justify-content:center;cursor:pointer">+</div>
+</div>
+
+<div id="scan" class="screen">
+<div class="scroll-area">
+<input class="search" id="searchInput" placeholder="검색" oninput="liveSearch()">
+<div class="main"><div>제품 스캔</div>
+<button class="scan-btn" onclick="openNativeCamera()">스캔하기</button>
+
+<input 
+  type="file"
+  id="cameraInput"
+  accept="image/*"
+  capture="environment"
+  style="display:none"
+  onchange="handleCapturedImage(event)"
+></div>
+</div>
+
+<div class="result" id="resultBox"><p id="resultText"></p><button onclick="closeResult()">닫기</button></div>
+</div>
+
+<div id="compare" class="screen">
+<div class="compare-wrap">
+<div class="compare-title">영양제 비교</div>
+<div class="compare-cards">
+
+<div class="compare-card" onclick="alert('제품 등록 기능 예정')">
+<div class="compare-img"></div>
+<div class="compare-text">여기 눌러 제품등록</div>
+</div>
+
+<div class="compare-card">
+  <div class="compare-img"></div>
+  <div id="compare1"></div>
+</div>
+
+<div class="compare-card">
+  <div class="compare-img"></div>
+  <div id="compare2"></div>
+</div>
+
+</div>
+<button onclick="openCompareAdd()">비교하기</button>
+</div>
+</div>
+
+<div id="chat" class="screen">
+<div class="chat-header">AI 상담</div>
+<div id="chatBox" class="chat-box"></div>
+<div class="chat-input-area"><input id="chatInput"><button onclick="sendMsg()">➤</button></div>
+</div>
+
+<div id="bottomNav" class="bottom-nav">
+<div class="nav-item active" onclick="goTab('home')">홈</div>
+<div class="nav-item" onclick="goTab('scan')">스캔</div>
+<div class="nav-item" onclick="goTab('compare')">비교</div>
+<div class="nav-item" onclick="goTab('chat')">챗</div>
+</div>
+
+<div id="addModal" class="modal"><div class="modal-content"><input type="time" id="alarmTime"><input id="alarmName"> <div class="section-title">날짜 선택 (선택사항)</div><input type="date" id="alarmDate"><div id="days" class="days"></div><button onclick="saveAlarm()">저장</button><button onclick="closeAddModal()">닫기</button></div></div>
+<div id="profileModal" class="modal"><div class="modal-content"><p id="userEmail"></p><button onclick="logout()">로그아웃</button><button onclick="closeProfile()">닫기</button></div></div>
+
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const dayNames=['일','월','화','수','목','금','토'];
+
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.remove('active');
+  });
+
+  $(id).classList.add('active');
+
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+
+  if(id === 'home') document.querySelectorAll('.nav-item')[0].classList.add('active');
+  if(id === 'scan') document.querySelectorAll('.nav-item')[1].classList.add('active');
+  if(id === 'compare') document.querySelectorAll('.nav-item')[2].classList.add('active');
+  if(id === 'chat') document.querySelectorAll('.nav-item')[3].classList.add('active');
+
+  // 하단바 처리 유지
+  if(
+    id==='start' ||
+    id==='input0' ||
+    id==='login' ||
+    id==='input1' ||
+    id==='input2' ||
+    id==='input3'
+  ){
+    bottomNav.style.display='none';
+  }else{
+    bottomNav.style.display='flex';
+  }
+}
+function goTab(id){
+  go(id);
+
+  if(id === 'compare'){
+    loadCompareItems();
+  }
+}
+function showSignup(){signupBox.style.display='block';signupBtn.innerText='가입 완료';signupBtn.onclick=signUp}
+function signUp(){
+let email=$('email').value;
+let nickname=$('nickname').value;
+let pw=$('pw').value;
+let pw2=$('pw2').value;
+  let users=JSON.parse(localStorage.getItem('users'))||[];
+
+  if(!email||!pw||!pw2) return alert('입력 필요');
+  if(pw!==pw2) return alert('비번 불일치');
+  if(users.some(u=>u.email===email)) return alert('이미 존재');
+
+  users.push({
+  email,
+  nickname,
+  pw
+});
+  localStorage.setItem('users',JSON.stringify(users));
+  localStorage.setItem('currentUser',email);
+  localStorage.setItem('isLoggedIn','true');
+
+  // ✅ 회원가입 후 바로 input1
+  
+  location.href = "nutriscan-personal information.html";
+}
+
+function login(){
+  let email=$('email').value.trim();
+  let pw=$('pw').value.trim();
+  let users=JSON.parse(localStorage.getItem('users'))||[];
+  let user=users.find(u=>u.email===email);
+
+  if(!email || !pw) return alert('입력 필요');
+  if(!user) return alert('계정 없음');
+  if(user.pw!==pw) return alert('비번 틀림');
+
+  localStorage.setItem('currentUser',email);
+  localStorage.setItem('currentNickname',user.nickname || email);
+  localStorage.setItem('isLoggedIn','true');
+
+  go('home');
+  init();
+}
+
+function logout(){closeProfile();localStorage.removeItem('isLoggedIn');localStorage.removeItem('currentUser');localStorage.removeItem('currentNickname');go('start');}
+function openProfile(){location.href="my-info.html";}
+function goCalendar(){location.href="nutriscan-calendar.html";}
+function closeProfile(){profileModal.style.display='none';}
+
+function renderWeek(){const now=new Date();const todayIndex=now.getDay();const sunday=new Date(now);sunday.setDate(now.getDate()-todayIndex);week.innerHTML='';
+for(let i=0;i<7;i++){let d=new Date(sunday);d.setDate(sunday.getDate()+i);let div=document.createElement('div');div.className='week-day'+(i===todayIndex?' today':'');div.innerHTML=`${dayNames[i]}<br>${d.getDate()}`;week.appendChild(div);}}
+function renderDate(){date.innerText=new Date().toLocaleDateString('ko-KR');}
+
+function renderDays(){days.innerHTML='';dayNames.forEach(d=>{let el=document.createElement('div');el.className='day-chip';el.innerText=d;el.onclick=()=>el.classList.toggle('active');days.appendChild(el);});document.getElementById("alarmDate").addEventListener("change",()=>{document.querySelectorAll('#days .day-chip').forEach(el=>el.classList.remove('active'));});}
+function openAddModal(){renderDays();addModal.style.display='flex'}
+function closeAddModal(){addModal.style.display='none'}
+function saveAlarm(){
+  let time = alarmTime.value;
+  let name = alarmName.value || "영양제";
+  let date = document.getElementById("alarmDate").value;
+
+  let selectedDays = [...document.querySelectorAll('#days .active')]
+                      .map(el => el.innerText);
+
+  if(!time) return alert("시간 입력");
+
+  // 🔥 날짜 OR 요일 둘 중 하나는 선택
+  if(!date && selectedDays.length === 0){
+    return alert("요일 또는 날짜 선택 필요");
+  }
+
+  let user = localStorage.getItem('currentUser');
+  let alarms = JSON.parse(localStorage.getItem(user+'_alarms')) || [];
+
+  alarms.push({
+    time,
+    name,
+    days: selectedDays,
+    date: date, // 🔥 추가
+    active: true,
+    taken: false
+  });
+
+  localStorage.setItem(user+'_alarms', JSON.stringify(alarms));
+
+  closeAddModal();
+  loadAlarms();
+}
+function loadAlarms(){
+  let user = localStorage.getItem('currentUser');
+  let alarms = JSON.parse(localStorage.getItem(user+'_alarms')) || [];
+
+  alarmList.innerHTML = '';
+
+  alarms.forEach((a, i)=>{
+    let div = document.createElement('div');
+    div.className = 'alarm-item';
+
+let dateText = "";
+
+if(a.date){
+  dateText = a.date;
+}else if(a.days && a.days.length){
+  dateText = a.days.join(", ");
+}
+
+div.innerHTML = `
+  <div style="display:flex;align-items:center;gap:10px;">
+    
+    <div class="check-btn ${a.taken ? 'done':''}" onclick="toggleTaken(${i})">
+      ✔
+    </div>
+
+    <div>
+      <div style="font-size:14px">${a.time}</div>
+      <div style="font-size:12px;color:#666">${a.name}</div>
+      <div style="font-size:11px;color:#999">${dateText}</div>
+    </div>
+  </div>
+
+  <!-- 🔥 오른쪽 영역 -->
+  <div style="display:flex;align-items:center;gap:6px;">
+    
+    <!-- 토글 -->
+    <div class="toggle ${a.active ? 'on':''}" onclick="toggleActive(${i})">
+      <div class="circle"></div>
+    </div>
+
+    <!-- 삭제 버튼 -->
+    <div class="delete-btn" onclick="deleteAlarm(${i})">🗑</div>
+
+  </div>
+`;
+
+    alarmList.appendChild(div);
+  });
+}
+function deleteAlarm(i){
+  if(!confirm("삭제하시겠습니까?")) return;
+
+  let user=localStorage.getItem('currentUser');
+  let alarms=JSON.parse(localStorage.getItem(user+'_alarms'))||[];
+  alarms.splice(i,1);
+  localStorage.setItem(user+'_alarms',JSON.stringify(alarms));
+  loadAlarms();
+}
+let lastSearchResult = "";
+function toggleActive(i){
+  let user = localStorage.getItem('currentUser');
+  let alarms = JSON.parse(localStorage.getItem(user+'_alarms')) || [];
+
+  alarms[i].active = !alarms[i].active;
+
+  localStorage.setItem(user+'_alarms', JSON.stringify(alarms));
+  loadAlarms();
+}
+
+function toggleTaken(i){
+  let user = localStorage.getItem('currentUser');
+  let alarms = JSON.parse(localStorage.getItem(user+'_alarms')) || [];
+
+  alarms[i].taken = !alarms[i].taken;
+
+  localStorage.setItem(user+'_alarms', JSON.stringify(alarms));
+
+  loadAlarms(); // 🔥 UI 즉시 반영
+}
+function liveSearch(){
+  let t = searchInput.value.trim();
+
+  if(t.length > 1){
+    lastSearchResult = t;
+    showResult('검색 결과: ' + t, true);
+  }
+  let stream;
+}
+
+function showResult(t, isSearch=false){
+  resultBox.classList.remove('show');
+
+  setTimeout(()=>{
+    if(isSearch){
+      resultText.innerHTML = `
+        <div>${t}</div>
+        <button onclick="addSearchResult()">추가하기</button>
+      `;
+    }else{
+      resultText.innerText = t;
+    }
+
+    resultBox.classList.add('show');
+  },100);
+}
+
+
+
+
+
+function closeResult(){resultBox.classList.remove('show')}
+
+function sendMsg(){if(!chatInput.value)return;let d=document.createElement('div');d.className='msg user';d.innerText=chatInput.value;chatBox.appendChild(d);chatInput.value='';chatBox.scrollTop=chatBox.scrollHeight}
+
+function init(){
+  renderDate();
+  renderWeek();
+  loadAlarms();
+  loadCompareItems(); 
+  loadHomeScore();
+
+
+
+  document.getElementById("welcomeName").innerText =
+  localStorage.getItem("currentNickname") + "님";
+  
+  // 🔥 URL로 compare 들어왔을 때 자동 실행
+ 
+}
+
+function loadHomeScore(){
+  let key = getSupplementKey();
+
+let supplements = JSON.parse(localStorage.getItem(key)) || [];
+
+  let score = Math.min(100, supplements.length * 20);
+
+  document.getElementById("score").innerText = score + "점";
+
+  let user = localStorage.getItem("currentUser");
+
+localStorage.setItem(
+  user+"_homeScore",
+  score + "점"
+);
+}
+
+window.onload = () => {
+  let isLogin = localStorage.getItem('isLoggedIn');
+
+  // hash 우선 처리
+  if(location.hash){
+    const target = location.hash.replace("#", "");
+
+    if(document.getElementById(target)){
+      go(target);
+
+      if(
+        target === "home" ||
+        target === "compare" ||
+        target === "scan" ||
+        target === "chat"
+      ){
+        init();
+      }
+
+      // hash 제거
+      history.replaceState(
+        null,
+        null,
+        window.location.pathname
+      );
+
+      return;
+    }
+  }
+
+  // 일반 로그인 상태
+  if(isLogin === "true"){
+    go("home");
+    init();
+  }
+
+  // 비로그인 상태
+  else{
+    go("start");
+  }
+}
+
+
+
+
+/* =========================
+   🔥 [추가 1] 캐비닛 저장 시스템
+========================= */
+function getSupplementKey(){
+  let user = localStorage.getItem("currentUser");
+  return user + "_supplements";
+}
+
+function saveToCabinet(name){
+  let key = getSupplementKey();
+
+let list = JSON.parse(localStorage.getItem(key)) || [];
+
+// 중복 검사
+  let alreadyExists = list.some(item =>
+    item.name.trim().toLowerCase() === name.trim().toLowerCase()
+  );
+
+  if(alreadyExists){
+    alert("이미 캐비닛에 등록된 제품입니다.");
+    return;
+  }
+
+  let nutrients = [
+    {name:'비타민C',val:'500mg',percent:80},
+    {name:'아연',val:'10mg',percent:120}, // 일부러 초과
+    {name:'마그네슘',val:'200mg',percent:60}
+  ];
+
+  // 🔥 여기서 100% 제한
+  nutrients = nutrients.map(n => ({
+    ...n,
+    percent: Math.min(n.percent, 100)
+  }));
+
+  list.push({
+    name:name,
+    nutrients:nutrients
+  });
+
+  localStorage.setItem(key,JSON.stringify(list));
+}
+
+/* =========================
+   🔥 [수정 1] 스캔 저장 연결
+========================= */
+
+
+/* =========================
+   🔥 [추가 2] 비교 → 새로등록
+========================= */
+function addNewProduct(){
+  location.href = "product-add.html";
+}
+
+/* =========================
+   🔥 [추가 3] 캐비닛 이동
+========================= */
+function goCabinet(){
+  closeCompareAdd();
+  location.href="nutriscan-cabinit.html";
+}
+
+/* =========================
+   🔥 [수정 2] modal 오류 수정
+========================= */
+function openCompareModal(){
+  document.getElementById('compareModal').classList.add('show');
+}
+function closeCompareModal(){
+  document.getElementById('compareModal').classList.remove('show');
+}
+
+function saveSearchResult(query){
+  if(query.length < 2) return;
+
+  let productName = query + " 영양제";
+
+  saveToCabinet(productName);
+
+  showResult("검색 결과 저장: " + productName);
+}
+
+function addSearchResult(){
+  if(!lastSearchResult) return;
+
+  let productName = lastSearchResult + " 영양제";
+
+  saveToCabinet(productName);
+
+  alert("캐비닛에 추가됨");
+
+  lastSearchResult = "";
+
+  closeResult();
+}
+function confirmSaveProduct(productName){
+  saveToCabinet(productName);
+
+  alert("캐비닛 저장 완료");
+
+  closeResult();
+}
+
+/* =========================
+   🔥 선택된 비교 제품 반영
+========================= */
+function loadCompareItems(){
+  let user = localStorage.getItem("currentUser");
+
+let selected = JSON.parse(
+  localStorage.getItem(user+"_selectedCompare")
+) || [];
+
+  if(selected.length >= 1){
+    document.getElementById("compare1").innerText = selected[0].name;
+  }
+
+  if(selected.length >= 2){
+    document.getElementById("compare2").innerText = selected[1].name;
+  }
+}
+
+/* =========================
+   🔥 자동 비교 실행
+========================= */
+function runCompare(){
+  let selected = JSON.parse(localStorage.getItem("selectedCompare")) || [];
+
+ 
+  // 🔥 비교 화면으로 이동
+  location.href = "versus-detail.html";
+}
+
+let selectedGoals = [];
+
+function toggleChip(el){
+  const value = el.innerText;
+
+  if(el.classList.contains("active")){
+    el.classList.remove("active");
+    selectedGoals = selectedGoals.filter(v=>v !== value);
+  }else{
+    el.classList.add("active");
+    selectedGoals.push(value);
+  }
+}
+
+function finishInput(){
+  let email = localStorage.getItem('currentUser');
+
+  let userInfo = {
+    nickname: $('nicknameInput').value.trim(),   // 추가
+    gender: selectedGender,
+    age: $('age').value,
+    height: $('height').value,
+    weight: $('weight').value,
+    lifestyle: [...document.querySelectorAll('#input2 .chip.active')]
+      .map(e=>e.innerText),
+    goal: [...document.querySelectorAll('#input3 .chip.active')]
+      .map(e=>e.innerText)
+  };
+
+  // 닉네임 비어있으면 막기
+  if(!userInfo.nickname){
+    alert("닉네임을 입력해주세요");
+    return;
+  }
+
+  localStorage.setItem(
+    email+"_info",
+    JSON.stringify(userInfo)
+  );
+
+  // 홈 welcome 이름용 저장
+  localStorage.setItem(
+    "currentNickname",
+    userInfo.nickname
+  );
+
+  // 🔥 먼저 hash 제거
+  history.replaceState(
+    null,
+    null,
+    window.location.pathname
+  );
+
+  // 그 다음 홈 이동
+  go('home');
+  init();
+}
+
+function openCompareAdd(){
+  document.getElementById('compareAddModal').classList.add('show');
+}
+
+function closeCompareAdd(){
+  document.getElementById('compareAddModal').classList.remove('show');
+}
+let selectedGender = "";
+
+function selectGender(el){
+  document.querySelectorAll('.gender-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  selectedGender = el.innerText;
+}
+
+function goSignup(){
+  location.href = "nutriscan-personal-information.html";
+}
+
+function signUpAndNext(){
+  let email = $('signupEmail').value.trim();
+  let pw = $('signupPw').value.trim();
+  let pw2 = $('signupPw2').value.trim();
+
+  let users = JSON.parse(localStorage.getItem('users')) || [];
+
+  if(!email || !pw || !pw2){
+    return alert("모든 항목 입력");
+  }
+
+  if(pw !== pw2){
+    return alert("비밀번호 불일치");
+  }
+
+  if(users.some(u => u.email === email)){
+    return alert("이미 존재하는 계정");
+  }
+
+  users.push({
+    email: email,
+    pw: pw,
+    nickname: ""
+  });
+
+  localStorage.setItem(
+    'users',
+    JSON.stringify(users)
+  );
+
+  localStorage.setItem(
+    'currentUser',
+    email
+  );
+
+  localStorage.setItem(
+    'isLoggedIn',
+    'true'
+  );
+
+  go('input1');
+}
+function openNativeCamera(){
+  document.getElementById("cameraInput").click();
+}
+async function handleCapturedImage(event){
+  try{
+    const file = event.target.files[0];
+
+    if(!file) return;
+
+    showResult("OCR 분석중...");
+
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = function(e){
+      img.src = e.target.result;
+    };
+
+    img.onload = async function(){
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      ctx.drawImage(img,0,0);
+
+      const result = await Tesseract.recognize(
+        canvas,
+        "kor+eng"
+      );
+
+      let extractedText =
+        result.data.text.trim();
+
+      if(!extractedText){
+        showResult("텍스트 인식 실패");
+        return;
+      }
+
+      let lines = extractedText
+  .split("\n")
+  .map(t => t.trim())
+  .filter(t =>
+    t.length > 2 &&
+    /[가-힣a-zA-Z0-9]/.test(t)
+  );
+
+let productName = lines[0];
+
+      if(!productName){
+  showResult("제품명을 인식하지 못했습니다. 다시 촬영해주세요.");
+  return;
+}
+
+      resultText.innerHTML = `
+        <div>${productName}</div>
+        <button onclick="confirmSaveProduct('${productName}')">
+          저장하기
+        </button>
+      `;
+
+      resultBox.classList.add("show");
+    };
+
+    reader.readAsDataURL(file);
+    event.target.value = "";
+
+  }catch(error){
+    console.error(error);
+    alert("카메라 오류 발생");
+  }
+}
+</script>
+
+<!-- 비교 방식 선택 모달 -->
+<!-- compareModal -->
+<div id="compareModal" class="compare-modal">
+  <div style="text-align:center;font-weight:bold;margin-bottom:10px">비교 방식 선택</div>
+  <div class="compare-option" onclick="addNewProduct()">새로 등록하기</div>
+  <div class="compare-option primary" onclick="goCabinet()">마이페이지에서 고르기</div>
+  <button onclick="closeCompareModal()">닫기</button>
+</div>
+
+<!-- 🔥 따로! -->
+<div id="compareAddModal" class="compare-modal">
+  <div style="text-align:center;font-weight:bold;margin-bottom:10px">제품 선택</div>
+  <div class="compare-option" onclick="addNewProduct()">새로 등록하기</div>
+  <div class="compare-option primary" onclick="goCabinet()">마이페이지에서 고르기</div>
+  <button onclick="closeCompareAdd()">닫기</button>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</body>
+</html>

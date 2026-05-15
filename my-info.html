@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내 정보</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system}
+body{background:#e9ecf1;display:flex;justify-content:center}
+
+.phone{
+  width:360px;
+  min-height:100vh;
+  background:#f7f8fa;
+  padding:20px;
+}
+
+/* 상단 */
+.header{
+  display:flex;
+  align-items:center;
+  margin-bottom:20px;
+}
+.back{
+  font-size:20px;
+  cursor:pointer;
+}
+
+/* 카드 */
+.card{
+  background:white;
+  border-radius:15px;
+  padding:15px;
+  margin-bottom:15px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+.name{
+  color:#1a73e8;
+  font-weight:bold;
+}
+
+/* 점수 */
+.score{
+  font-size:40px;
+  font-weight:bold;
+  color:#1a73e8;
+  text-align:right;
+}
+
+/* 목표 버튼 */
+.goal-btn{
+  padding:6px 12px;
+  border-radius:20px;
+  font-size:12px;
+  background:#e9ecf1;
+  color:#666;
+  display:inline-block;
+  margin:4px;
+}
+
+.goal-btn.active{
+  background:#1a73e8;
+  color:white;
+}
+
+/* 영양제 */
+.item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:12px;
+}
+.item img{
+  margin-left:auto;
+}
+.progress{
+  height:6px;
+  background:#eee;
+  border-radius:5px;
+  margin-top:5px;
+}
+.bar{
+  height:6px;
+  background:#34c759;
+  border-radius:5px;
+}
+
+.empty{
+  text-align:center;
+  color:#999;
+  padding:20px 0;
+}
+
+/* 삭제 버튼 (모바일 스타일) */
+.delete-btn{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:#ffe5e5;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  color:#ff3b30;
+  cursor:pointer;
+  margin-left:10px;
+  transition:0.15s;
+}
+
+.delete-btn:active{
+  transform:scale(0.9);
+  background:#ffcccc;
+}
+
+.item{
+  transition:0.2s;
+}
+
+.item:active{
+  background:#f5f5f5;
+}
+.account-section{
+  width:100%;
+  margin-top:20px;
+  margin-bottom:30px;
+}
+
+.account-manage-btn{
+  width:100%;
+  height:48px;
+  background:white;
+  border-radius:14px;
+  font-weight:bold;
+  font-size:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+.account-menu{
+  display:none;
+  margin-top:12px;
+  flex-direction:column;
+  gap:10px;
+}
+
+.logout-btn,
+.delete-account-btn{
+  width:100%;
+  height:46px;
+  border:none;
+  border-radius:12px;
+  font-size:13px;
+  margin-top:8px;
+}
+.logout-btn{
+  background:#1a73e8;
+  color:white;
+}
+
+.delete-account-btn{
+  background:#ff5252;
+  color:white;
+}
+.extra-policy-section{
+  width:100%;
+  margin-top:12px;
+}
+</style>
+</head>
+
+<body>
+<div class="phone">
+
+  <!-- 헤더 -->
+  <div class="header">
+    <div class="back" onclick="goBack()">←</div>
+    <div style="margin-left:10px;font-weight:bold;">정보 수정</div>
+  </div>
+
+  <!-- 상단 -->
+  <div class="card">
+    <div>
+      <span class="name" id="userName">사용자</span> 님<br>
+      오늘 컨디션은 어떠세요?
+    </div>
+  </div>
+
+  <!-- 점수 -->
+  <div class="card">
+    <div>나의 섭취 조합</div>
+    <div class="score" id="score">0 점</div>
+  </div>
+
+  <!-- 건강 목표 -->
+  <div class="card">
+  <div>나의 건강 목표</div>
+  <div id="goals"></div>
+
+  <!-- 🔥 여기 추가 -->
+  <button onclick="saveGoals()">저장</button>
+</div>
+
+  <!-- 영양제 -->
+  <div class="card">
+    <div>나의 섭취 영양제 & 루틴</div>
+    <div id="supplementList"></div>
+  </div>
+<!-- 계정 관리 (스크롤 맨 아래) -->
+<div class="account-section">
+
+  <div class="account-manage-btn" onclick="toggleAccountMenu()">
+    ⚙️ 내 계정 관리
+  </div>
+
+ <div id="accountMenu" class="account-menu">
+
+  <!-- 기존 로그아웃 -->
+  <button class="logout-btn" onclick="logoutAccount()">
+    로그아웃
+  </button>
+
+  <!-- 기존 탈퇴 -->
+  <button class="delete-account-btn" onclick="deleteAccount()">
+    회원 탈퇴 및 계정 삭제
+  </button>
+
+</div>
+</div>
+  <div class="extra-policy-section">
+  <div class="account-manage-btn" onclick="goToServiceTerms()">
+    서비스 이용약관
+  </div>
+</div>
+
+<div class="extra-policy-section">
+  <div class="account-manage-btn" onclick="goToPrivacyPolicy()">
+    개인정보 처리방침
+  </div>
+</div>
+<script>
+function goBack(){
+  location.href = "nutriscan-home.html#home";
+}
+
+function loadData(){
+
+  const email = localStorage.getItem("currentUser");
+
+  // 사용자 정보
+  const userInfo = JSON.parse(localStorage.getItem(email+"_info") || "{}");
+
+  // 이름 (이메일 기반 표시)
+  document.getElementById("userName").innerText = email || "사용자";
+
+  // 건강 목표
+  const savedGoals = userInfo.goal || [];
+  selectedGoals = [...savedGoals];
+
+  const allGoals = [
+    "피로 개선","면역력","눈 건강","장 건강",
+    "다이어트","피부 건강","관절 건강",
+    "수면 개선","근육 증가"
+  ];
+
+  const goalsBox = document.getElementById("goals");
+  goalsBox.innerHTML = "";
+
+  allGoals.forEach(g=>{
+    const div = document.createElement("div");
+    div.className = "goal-btn";
+div.onclick = () => toggleGoal(div);
+
+    if(savedGoals.includes(g)){
+      div.classList.add("active");
+    }
+
+    div.innerText = g;
+    goalsBox.appendChild(div);
+  });
+
+  // 점수 계산 (간단)
+  const supplements = JSON.parse(localStorage.getItem("supplements") || "[]");
+  let score = Math.min(100, supplements.length * 20);
+  document.getElementById("score").innerText = score + " 점";
+
+  // 영양제 목록
+  const list = document.getElementById("supplementList");
+  list.innerHTML = "";
+
+  if(supplements.length === 0){
+    list.innerHTML = "<div class='empty'>등록된 영양제가 없습니다</div>";
+    return;
+  }
+
+  supplements.forEach((item, index)=>{
+  const div = document.createElement("div");
+  div.className = "item";
+
+  div.innerHTML = `
+    <div style="flex:1">
+      <div>${item.name}</div>
+
+      <div class="progress">
+        <div class="bar" style="width:50%"></div>
+      </div>
+    </div>
+
+    <!-- 삭제 버튼 -->
+    <div class="delete-btn" onclick="deleteSupplement(${index})">
+  ✕
+</div>
+
+    <img src="https://via.placeholder.com/60">
+  `;
+
+  list.appendChild(div);
+});
+
+}
+function deleteSupplement(index){
+
+  if(!confirm("이 영양제를 삭제할까요?")) return;
+
+  let supplements = JSON.parse(localStorage.getItem("supplements")) || [];
+
+  // 🔥 삭제
+  supplements.splice(index, 1);
+
+  localStorage.setItem("supplements", JSON.stringify(supplements));
+
+  // 🔥 UI 즉시 갱신
+  loadData();
+}
+
+let selectedGoals = [];
+
+function toggleGoal(el){
+  const value = el.innerText;
+
+  if(el.classList.contains("active")){
+    el.classList.remove("active");
+    selectedGoals = selectedGoals.filter(v=>v !== value);
+  }else{
+    el.classList.add("active");
+    selectedGoals.push(value);
+  }
+}
+
+function saveGoals(){
+
+  const email = localStorage.getItem("currentUser");
+
+  let userInfo = JSON.parse(localStorage.getItem(email+"_info") || "{}");
+
+  userInfo.goal = selectedGoals;
+
+  localStorage.setItem(email+"_info", JSON.stringify(userInfo));
+
+  alert("건강 목표가 수정되었습니다");
+}
+function toggleAccountMenu(){
+  let menu = document.getElementById("accountMenu");
+
+  if(menu.style.display === "flex"){
+    menu.style.display = "none";
+  }else{
+    menu.style.display = "flex";
+  }
+}
+
+function logoutAccount(){
+  localStorage.removeItem("currentUser");
+  localStorage.removeItem("currentNickname");
+  localStorage.removeItem("isLoggedIn");
+
+  alert("로그아웃 되었습니다.");
+  location.href="nutriscan-home.html";
+}
+
+function deleteAccount(){
+  if(!confirm("정말 탈퇴하시겠습니까?")) return;
+
+  let currentUser = localStorage.getItem("currentUser");
+
+  let users = JSON.parse(localStorage.getItem("users")) || [];
+
+  users = users.map(user=>{
+  if(user.email === email){
+    return {
+      ...user,
+      nickname:userInfo.nickname
+    };
+  }
+  return user;
+});
+
+let email = localStorage.getItem("currentUser");
+
+localStorage.removeItem(email+"_alarms");
+localStorage.removeItem(email+"_supplements");
+localStorage.removeItem(email+"_info");
+localStorage.removeItem(email+"_selectedCompare");
+localStorage.removeItem(email+"_homeScore");
+
+localStorage.removeItem("currentUser");
+localStorage.removeItem("currentNickname");
+localStorage.removeItem("isLoggedIn");
+
+  alert("회원 탈퇴 완료");
+
+  location.href="nutriscan-home.html";
+}
+function goToServiceTerms(){
+  location.href = "service-terms.html";
+}
+function goToPrivacyPolicy(){
+  location.href = "privacy-policy.html";
+}
+loadData();
+</script>
+<!-- 여기에 추가 -->
+
+
+</div>
+</body>
+</html>

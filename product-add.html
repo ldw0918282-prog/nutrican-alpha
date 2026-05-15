@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제품 등록</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system}
+
+body{
+  background:#e9ecf1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+/* 📱 앱 프레임 */
+.phone{
+  width:360px;
+  height:640px;
+  background:#f2f3f5;
+  border-radius:30px;
+  overflow:hidden;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+}
+
+/* 헤더 */
+.header{
+  padding:15px;
+  font-size:18px;
+  font-weight:bold;
+  background:#fff;
+  border-bottom:1px solid #eee;
+}
+
+/* 컨텐츠 */
+.container{
+  flex:1;
+  overflow-y:auto;
+  padding:15px;
+}
+
+/* 카드 */
+.box{
+  background:#fff;
+  padding:15px;
+  border-radius:15px;
+  margin-top:10px;
+}
+
+/* input */
+input{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:14px;
+}
+
+/* 버튼 영역 */
+.bottom{
+  padding:10px;
+  background:#fff;
+  border-top:1px solid #eee;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:#1a73e8;
+  color:#fff;
+  font-size:14px;
+  margin-top:8px;
+}
+
+/* 성분 리스트 */
+.n-item{
+  font-size:13px;
+  padding:6px 0;
+  border-bottom:1px solid #f1f1f1;
+}
+</style>
+</head>
+
+<body>
+
+<div class="phone">
+
+  <div class="header">제품 등록</div>
+
+  <div class="container">
+
+    <input id="name" placeholder="제품명">
+    <input id="brand" placeholder="브랜드명">
+    <input id="dose" placeholder="1회 복용량">
+    <input id="perDay" placeholder="1일 복용 횟수">
+    <input id="timing" placeholder="복용 타이밍">
+    <input id="expire" placeholder="소비기한">
+
+    <div class="box">
+      <b>성분</b>
+      <div id="nutrients"></div>
+    </div>
+
+  </div>
+
+  <div class="bottom">
+    <button onclick="addNutrient()">+ 성분 추가</button>
+    <button onclick="saveProduct()">완료</button>
+  </div>
+
+</div>
+
+<script>
+let nutrients = [];
+
+/* 🔥 성분 추가 */
+function addNutrient(){
+  let name = prompt("성분 이름");
+  let val = prompt("함량");
+  let percent = prompt("퍼센트");
+
+  if(!name) return;
+
+  nutrients.push({
+    name,
+    val,
+    percent: Math.min(Number(percent) || 0, 100)
+  });
+
+  render();
+}
+
+/* 🔥 렌더 */
+function render(){
+  let box = document.getElementById("nutrients");
+  box.innerHTML = "";
+
+  nutrients.forEach(n=>{
+    let div = document.createElement("div");
+    div.className = "n-item";
+    div.innerText = `${n.name} ${n.val} (${n.percent}%)`;
+    box.appendChild(div);
+  });
+}
+
+/* 🔥 저장 */
+function saveProduct(){
+  let item = {
+    name: document.getElementById("name").value,
+    brand: document.getElementById("brand").value,
+    dose: document.getElementById("dose").value,
+    perDay: document.getElementById("perDay").value,
+    timing: document.getElementById("timing").value,
+    expire: document.getElementById("expire").value,
+    nutrients
+  };
+
+  if(!item.name){
+    alert("제품명 입력 필요");
+    return;
+  }
+
+  let list = JSON.parse(localStorage.getItem("supplements")) || [];
+  list.push(item);
+
+  localStorage.setItem("supplements", JSON.stringify(list));
+
+  alert("저장 완료");
+
+  location.href = "nutriscan-home.html#compare";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마이 캐비닛</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system}
+
+html{
+  width:100%;
+  height:100%;
+}
+
+body{
+  background:#f2f3f5;
+  margin:0;
+}
+
+.app{
+  width:100%;
+  max-width:420px;
+  height:100vh;
+  overflow:visible;
+  margin:auto;
+  display:flex;
+  flex-direction:column;
+  background:#f2f3f5;
+  
+}
+
+.header{
+  padding:15px;
+  font-size:18px;
+  font-weight:bold;
+  background:#fff;
+  position:sticky;
+  top:0;
+  z-index:10;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.close-btn{
+  font-size:14px;
+  color:#1a73e8;
+  cursor:pointer;
+}
+
+.container{
+  flex:1;
+  overflow-y:auto;
+  padding:15px;
+  min-height:0; /* 🔥 flex 스크롤 버그 방지 */
+}
+
+.top-card{
+  background:#e6f4ea;
+  padding:15px;
+  border-radius:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.add-btn{
+  background:#00c853;
+  color:#fff;
+  padding:8px 14px;
+  border-radius:10px;
+  font-size:13px;
+}
+
+.item{
+  background:#fff;
+  padding:15px;
+  border-radius:15px;
+  margin-top:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  cursor:pointer;
+}
+
+.item img{
+  width:60px;
+  height:60px;
+  border-radius:12px;
+}
+
+.progress{
+  height:6px;
+  background:#eee;
+  border-radius:5px;
+  margin-top:5px;
+}
+.bar{
+  height:100%;
+  background:#00c853;
+  border-radius:5px;
+}
+
+/* 상세 */
+.detail{
+  display:none;
+  flex-direction:column;
+  height:100%;
+}
+
+.card{
+  background:#fff;
+  padding:15px;
+  border-radius:15px;
+  margin-top:10px;
+}
+
+.green{background:#e6f4ea}
+.orange{background:#fff3e0}
+
+.nutrient{margin-top:10px}
+
+.n-bar{
+  height:6px;
+  background:#eee;
+  border-radius:5px;
+  margin-top:4px;
+}
+
+.fill{
+  height:100%;
+  background:#ff7043;
+  border-radius:5px;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  margin-top:10px;
+  background:#1a73e8;
+  color:#fff;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- ===================== -->
+<!-- 캐비닛 -->
+<!-- ===================== -->
+<div id="cabinet">
+  <div class="header">
+    <div>마이 캐비닛</div>
+    <div class="close-btn" onclick="goBack()">닫기</div>
+  </div>
+
+  <div class="container">
+    <div class="top-card">
+      <div>보관 제품 <b id="count">0</b>개</div>
+      <div class="add-btn" onclick="goAdd()">+ 새로 추가</div>
+    </div>
+
+    <!-- 🔥 여기 추가 -->
+    <button onclick="confirmSelection()">선택 완료</button>
+
+    <div id="list"></div>
+  </div>
+</div>
+
+<!-- ===================== -->
+<!-- 상세 -->
+<!-- ===================== -->
+<div id="detail" class="detail">
+  <div class="header">
+    <div>제품 상세</div>
+    <div class="close-btn" onclick="goBack()">닫기</div>
+  </div>
+
+  <div class="container">
+
+    <div class="card">
+      <b id="dName"></b>
+      <div style="color:#888;font-size:13px">남성용 활력 증진 멀티비타민</div>
+    </div>
+
+    <div class="card green">
+      ✔ AI 맞춤 분석<br>
+      현재 사용자에게 적합한 영양제입니다.
+    </div>
+
+    <div class="card orange">
+      ⚠ 안전 주의사항<br>
+      특정 성분 과다 가능
+    </div>
+
+    <div class="card">
+      섭취방법<br>
+      1일 1회, 식후 30분 이내
+    </div>
+
+    <div class="card">
+      <b>영양 성분 정보</b>
+      <div id="nutrients"></div>
+    </div>
+
+    <button onclick="back()">선택</button>
+    
+  </div>
+</div>
+
+</div>
+
+<script>
+function getKey(){
+  let user = localStorage.getItem('currentUser');
+  return user + "_supplements";
+}
+let selected=[];
+
+// 캐비닛 로드
+function load(){
+  let key = getKey();
+let list = JSON.parse(localStorage.getItem(key)) || [];
+  document.getElementById('count').innerText=list.length;
+
+  const box=document.getElementById('list');
+  box.innerHTML='';
+
+  list.forEach(item=>{
+    let div=document.createElement('div');
+    div.className='item';
+
+    let percent = item.nutrients?.[0]?.percent || 0;
+
+div.innerHTML = `
+  <div>
+    <b>${item.name}</b>
+
+    <div style="font-size:12px;color:#888">
+      ${item.brand || "브랜드 없음"}
+    </div>
+
+    <div style="font-size:12px;color:#666;margin-top:3px">
+      ${item.dose || "-"} / ${item.perDay || "-"}
+    </div>
+
+    <div style="font-size:12px;color:#aaa">
+      ${item.timing || "-"}
+    </div>
+
+    <div class="progress">
+      <div class="bar" style="width:${percent}%"></div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;align-items:flex-end">
+    <img src="https://via.placeholder.com/60">
+
+    <!-- 🔥 삭제 버튼 -->
+    <button onclick="deleteItem('${item.name}', event)"
+      style="margin-top:5px;background:#d93025;padding:6px 10px;font-size:12px">
+      삭제
+    </button>
+  </div>
+`;
+
+
+
+div.onclick = () => {
+
+  openDetail(item); // 상세 열기
+
+  let index = selected.findIndex(s => s.name === item.name);
+
+  if(index !== -1){
+    selected.splice(index, 1);
+    div.style.border = "none";
+    return;
+  }
+
+  if(selected.length >= 2){
+    alert("2개까지만 선택 가능");
+    return;
+  }
+
+  selected.push(item);
+  div.style.border = "2px solid #1a73e8";
+};
+    box.appendChild(div);
+  });
+}
+
+// 상세 열기
+function openDetail(item){
+  document.getElementById('cabinet').style.display='none';
+  document.getElementById('detail').style.display='flex';
+
+  let title = document.getElementById('dName');
+title.innerHTML = item.name;
+
+let info = document.createElement('div');
+info.style.fontSize = "13px";
+info.style.color = "#666";
+info.innerHTML = `
+브랜드: ${item.brand || "-"}<br>
+복용: ${item.dose || "-"} / ${item.perDay || "-"}<br>
+타이밍: ${item.timing || "-"}<br>
+유통기한: ${item.expire || "-"}
+`;
+
+title.appendChild(info);
+
+  const box=document.getElementById('nutrients');
+  box.innerHTML='';
+
+  item.nutrients.forEach(n=>{
+    let div=document.createElement('div');
+    div.className='nutrient';
+
+    div.innerHTML=`
+      <div style="display:flex;justify-content:space-between">
+        <span>${n.name}</span>
+        <span>${n.val}</span>
+      </div>
+      <div class="n-bar">
+        <div class="fill" style="width:${n.percent}%"></div>
+      </div>
+      <div style="text-align:right;font-size:12px">${n.percent}%</div>
+    `;
+
+    box.appendChild(div);
+  });
+}
+
+// 뒤로 (캐비닛 내부)
+function back(){
+  document.getElementById('detail').style.display='none';
+  document.getElementById('cabinet').style.display='block';
+}
+
+// 🔥 핵심: 메인 비교 화면으로 복귀
+function goBack(){
+  location.href = "nutriscan-home.html#compare";
+}
+
+function confirmSelection(){
+  // 1차 검증
+  if(selected.length < 2){
+    alert("2개 선택하세요");
+    return;
+  }
+
+  // 2차 검증 (데이터 깨짐 방지)
+  if(!selected[0].name || !selected[1].name){
+    alert("데이터 오류");
+    return;
+  }
+
+  // 저장
+  localStorage.setItem("selectedCompare", JSON.stringify(selected));
+
+  // 🔥 디버그 로그 (확인용)
+  console.log("선택 저장됨:", selected);
+
+  // 🔥 강제 이동
+  location.href = "versus-detail.html";
+}
+
+window.onload = () => {
+  load();
+
+  let data = JSON.parse(localStorage.getItem("selectedCompare")) || [];
+
+  if(data.length < 2){
+    console.log("비교 데이터 없음 (정상)");
+  }
+};
+
+function deleteItem(name, e){
+  e.stopPropagation();
+
+  if(!confirm("삭제하시겠습니까?")) return;
+
+  let key = getKey();
+
+  let list = JSON.parse(localStorage.getItem(key)) || [];
+
+  list = list.filter(item => item.name !== name);
+
+  localStorage.setItem(key, JSON.stringify(list));
+
+  // 선택 상태 제거
+  selected = selected.filter(item => item.name !== name);
+
+  // 비교 데이터 제거 (선택)
+  let user = localStorage.getItem('currentUser');
+  let compareKey = user + "_selectedCompare";
+
+  let compare = JSON.parse(localStorage.getItem(compareKey)) || [];
+  compare = compare.filter(item => item.name !== name);
+  localStorage.setItem(compareKey, JSON.stringify(compare));
+
+  load();
+}
+
+function goAdd(){
+  location.href = "product-add.html";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>개인정보 처리방침</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  font-family:-apple-system;
+}
+
+body{
+  background:#e9ecf1;
+  display:flex;
+  justify-content:center;
+}
+
+.phone{
+  width:360px;
+  min-height:100vh;
+  background:#f7f8fa;
+  padding:20px;
+}
+
+.header{
+  display:flex;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.back{
+  font-size:20px;
+  cursor:pointer;
+}
+
+.title{
+  margin-left:10px;
+  font-weight:bold;
+}
+
+.card{
+  background:white;
+  border-radius:15px;
+  padding:20px;
+  line-height:1.6;
+  font-size:14px;
+  color:#444;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <div class="header">
+    <div class="back" onclick="goBack()">←</div>
+    <div class="title">개인정보 처리방침</div>
+  </div>
+
+  <div class="card">
+    <b>제1조 (수집 항목)</b><br>
+    이메일, 건강 목표, 영양제 정보를 수집할 수 있습니다.<br><br>
+
+    <b>제2조 (수집 목적)</b><br>
+    맞춤형 건강 관리 서비스를 제공합니다.<br><br>
+
+    <b>제3조 (보관 기간)</b><br>
+    회원 탈퇴 시 개인정보는 삭제됩니다.<br><br>
+
+    <b>제4조 (제3자 제공)</b><br>
+    사용자의 동의 없이 외부 제공하지 않습니다.<br><br>
+
+    <b>제5조 (사용자 권리)</b><br>
+    사용자는 언제든 개인정보 삭제를 요청할 수 있습니다.
+  </div>
+
+</div>
+
+<script>
+function goBack(){
+  location.href="my-info.html";
+}
+</script>
+
+</body>
+</html>

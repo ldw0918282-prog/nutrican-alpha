@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>서비스 이용약관</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  font-family:-apple-system;
+}
+
+body{
+  background:#e9ecf1;
+  display:flex;
+  justify-content:center;
+}
+
+.phone{
+  width:360px;
+  min-height:100vh;
+  background:#f7f8fa;
+  padding:20px;
+}
+
+.header{
+  display:flex;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.back{
+  font-size:20px;
+  cursor:pointer;
+}
+
+.title{
+  margin-left:10px;
+  font-weight:bold;
+}
+
+.card{
+  background:white;
+  border-radius:15px;
+  padding:20px;
+  line-height:1.6;
+  font-size:14px;
+  color:#444;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <div class="header">
+    <div class="back" onclick="goBack()">←</div>
+    <div class="title">서비스 이용약관</div>
+  </div>
+
+  <div class="card">
+    <b>제1조 (목적)</b><br>
+    본 약관은 NutriScan 서비스 이용 조건 및 운영 기준을 규정합니다.<br><br>
+
+    <b>제2조 (서비스 제공)</b><br>
+    영양제 등록, 비교, 건강 관리 기능을 제공합니다.<br><br>
+
+    <b>제3조 (회원 정보 관리)</b><br>
+    사용자는 정확한 정보를 입력해야 합니다.<br><br>
+
+    <b>제4조 (서비스 제한)</b><br>
+    비정상적 이용 시 서비스 이용이 제한될 수 있습니다.<br><br>
+
+    <b>제5조 (책임 제한)</b><br>
+    건강 정보는 참고용이며 의료 진단을 대체하지 않습니다.
+  </div>
+
+</div>
+
+<script>
+function goBack(){
+  location.href="my-info.html";
+}
+</script>
+
+</body>
+</html>
